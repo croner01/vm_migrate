@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引用本地的 Bootstrap CSS 文件 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 自定义科技蓝主题 */
+        :root {
+            --primary-blue: #0096FF;
+            --light-blue: #E0F3FF;
+            --border-blue: #B3D9FF;
+            --dark-gray: #333;
+        }
+
+       .log-item {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+        }
+
+       .log-info {
+            color: var(--primary-blue);
+        }
+
+       .log-warning {
+            color: #FFA500;
+        }
+
+       .log-error {
+            color: #FF4444;
+        }
+
+       .card {
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+       .card:hover {
+            transform: translateY(-5px);
+        }
+
+       .card-header {
+            background-color: var(--primary-blue);
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+       .btn-primary {
+            background-color: var(--primary-blue);
+            border-color: var(--primary-blue);
+            transition: background-color 0.3s ease;
+        }
+
+       .btn-primary:hover {
+            background-color: #007ACC;
+            border-color: #007ACC;
+        }
+
+       .form-control {
+            border: 1px solid var(--border-blue);
+            transition: border-color 0.3s ease;
+        }
+
+       .form-control:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 0.2rem rgba(0, 150, 255, 0.25);
+        }
+
+       .es-logo-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+    </style>
+    <title>OpenStack 虚拟机批量迁移平台</title>
+</head>
+
+<body class="bg-light font-sans">
+    <div class="container py-5">
+        <!-- 顶部导航与标题 -->
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <div class="d-flex align-items-center gap-4">
+                <!-- 替换为 ES logo -->
+                <img src="{{ url_for('static', filename='es_logo.png') }}" alt="ES Logo" width="50">
+                <h1 class="text-3xl font-bold text-dark-gray">
+                    跨云迁移平台 <span class="text-primary">Pro</span>
+                </h1>
+            </div>
+        </div>
+
+        <!-- 环境配置表单 -->
+        <form id="migration-form" action="/migrate" method="post" enctype="multipart/form-data">
+            <div class="row g-4">
+                <!-- 源环境配置 -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="h5 mb-0">
+                                <img src="{{ url_for('static', filename='es_logo.png') }}" alt="ES Logo" class="es-logo-icon"> 源环境配置
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="source_auth_url">OpenStack 认证 URL <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: http://source-openstack.example.com:5000/v3)</small>
+                                <input type="text" class="form-control" id="source_auth_url" name="source_auth_url" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="source_project_name">源项目名称 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: source_project)</small>
+                                <input type="text" class="form-control" id="source_project_name" name="source_project_name"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="source_username">源用户名 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: source_user)</small>
+                                <input type="text" class="form-control" id="source_username" name="source_username"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="source_password">源用户密码 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: source_password)</small>
+                                <input type="password" class="form-control" id="source_password" name="source_password"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="source_user_domain_name">源用户域名称 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: source_domain)</small>
+                                <input type="text" class="form-control" id="source_user_domain_name"
+                                    name="source_user_domain_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="source_project_domain_name">源项目域名称 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: source_project_domain)</small>
+                                <input type="text" class="form-control" id="source_project_domain_name"
+                                    name="source_project_domain_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="source_ceph_conf_file">源 Ceph 配置文件 <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control-file" id="source_ceph_conf_file"
+                                    name="source_ceph_conf_file" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="source_ceph_pool">源 Ceph 存储池 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: source_ceph_pool)</small>
+                                <input type="text" class="form-control" id="source_ceph_pool" name="source_ceph_pool"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 目标环境配置 -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="h5 mb-0">
+                                <img src="{{ url_for('static', filename='es_logo.png') }}" alt="ES Logo" class="es-logo-icon"> 目标环境配置
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="target_auth_url">OpenStack 认证 URL <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: http://target-openstack.example.com:5000/v3)</small>
+                                <input type="text" class="form-control" id="target_auth_url" name="target_auth_url" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="target_project_name">目标项目名称 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: target_project)</small>
+                                <input type="text" class="form-control" id="target_project_name" name="target_project_name"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="target_username">目标用户名 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: target_user)</small>
+                                <input type="text" class="form-control" id="target_username" name="target_username"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="target_password">目标用户密码 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: target_password)</small>
+                                <input type="password" class="form-control" id="target_password" name="target_password"
+                                    required>
+                            </div>
+                            <div class="form-group">
+                                <label for="target_user_domain_name">目标用户域名称 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: target_domain)</small>
+                                <input type="text" class="form-control" id="target_user_domain_name"
+                                    name="target_user_domain_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="target_project_domain_name">目标项目域名称 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: target_project_domain)</small>
+                                <input type="text" class="form-control" id="target_project_domain_name"
+                                    name="target_project_domain_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="target_ceph_conf_file">目标 Ceph 配置文件 <span class="text-danger">*</span></label>
+                                <input type="file" class="form-control-file" id="target_ceph_conf_file"
+                                    name="target_ceph_conf_file" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="target_ceph_pool">目标 Ceph 存储池 <span class="text-danger">*</span></label>
+                                <small class="form-text text-muted">(如: target_ceph_pool)</small>
+                                <input type="text" class="form-control" id="target_ceph_pool" name="target_ceph_pool"
+                                    required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件上传与按钮 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="h5 mb-0">
+                        <img src="{{ url_for('static', filename='es_logo.png') }}" alt="ES Logo" class="es-logo-icon"> 批量迁移列表
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <!-- 新增并发迁移数量选择框 -->
+                    <div class="form-group">
+                        <label for="concurrency">并发迁移数量（1 - 10 台） <span class="text-danger">*</span></label>
+                        <select class="form-control" id="concurrency" name="concurrency" required>
+                            {% for i in range(1, 11) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="excel_file">上传迁移清单（Excel） <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control-file" id="excel_file" name="excel_file" required>
+                    </div>
+                    <!-- 新增迁移方式选择 -->
+                    <div class="form-group">
+                        <label for="migration_method">迁移方式 <span class="text-danger">*</span></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="migration_method" id="snapshot_migration" value="snapshot" checked>
+                            <label class="form-check-label" for="snapshot_migration">
+                                通过快照进行数据迁移
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="migration_method" id="rbd_diff_sync" value="rbd_diff">
+                            <label class="form-check-label" for="rbd_diff_sync">
+                                进行RBD diff数据同步
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="migration_method" id="full_migrate" value="full_migrate">
+                            <label class="form-check-label" for="full_migrate">
+                                使用rbd export import进行卷的完整迁移
+                            </label>
+                        </div>
+                    </div>
+                    <button type="button" id="start-migration" class="btn btn-primary btn-block">
+                        <img src="{{ url_for('static', filename='es_logo.png') }}" alt="ES Logo" class="es-logo-icon"> 开始跨云迁移
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- 实时日志监控 -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h5 mb-0">
+                    迁移进度监控
+                </h2>
+            </div>
+            <div class="card-body" id="logs" style="max-height: 300px; overflow-y: auto;">
+                <!-- 日志动态生成区域 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 引用本地的 jQuery、Popper 和 Bootstrap JavaScript 文件 -->
+    <script src="{{ url_for('static', filename='js/jquery.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script>
+        // 实时日志更新（带图标和颜色）
+        function updateLogs() {
+            fetch('/logs')
+              .then(res => res.text())
+              .then(logs => {
+                    const logContainer = document.getElementById('logs');
+                    const logLines = logs.split('\n');
+                    const recentLogs = logLines.slice(-20); // 只显示最近的20条日志
+                    logContainer.innerHTML = recentLogs.map(log => {
+                        let iconClass = 'fas fa-circle text-secondary';
+                        let textClass = '';
+                        if (log.includes('ERROR')) {
+                            iconClass = 'fas fa-exclamation-triangle text-danger';
+                            textClass = 'log-error';
+                        } else if (log.includes('WARNING')) {
+                            iconClass = 'fas fa-exclamation-circle text-warning';
+                            textClass = 'log-warning';
+                        } else if (log.includes('INFO')) {
+                            iconClass = 'fas fa-info-circle text-primary';
+                            textClass = 'log-info';
+                        }
+                        return `<div class="log-item"><i class="${iconClass}"></i><span class="${textClass}">${log}</span></div>`;
+                    }).join('');
+                    // 自动滚动到日志底部
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                });
+        }
+        setInterval(updateLogs, 3000);
+        window.onload = updateLogs;
+
+        // 使用 AJAX 提交表单
+        document.getElementById('start-migration').addEventListener('click', function () {
+            const form = document.getElementById('migration-form');
+            const formData = new FormData(form);
+
+            fetch('/migrate', {
+                method: 'POST',
+                body: formData
+            })
+              .then(response => response.json())
+              .then(data => {
+                    alert(data.message);
+                })
+              .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+        // 使用 AJAX 提交表单
+        document.getElementById('start-migration').addEventListener('click', function () {
+            const form = document.getElementById('migration-form');
+            const formData = new FormData(form);
+
+            fetch('/migrate', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text()) // 修改为 text() 以处理文本响应
+            .then(data => {
+                alert(data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+
+</html>    

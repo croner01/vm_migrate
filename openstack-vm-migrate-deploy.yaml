@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openstack-vm-migration-deployment
+  namespace: migrate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openstack-vm-migration
+  template:
+    metadata:
+      labels:
+        app: openstack-vm-migration
+    spec:
+      hostNetwork: true  # 使用本地网络
+      containers:
+      - name: openstack-vm-migration-container
+        image: hub.easystack.io/production/openstack-vm-migration:v2
+        command: ["/bin/sh", "-c", "sleep 3600"]
+        ports:
+        - containerPort: 19099
+        env:
+        - name: TZ
+          value: Asia/Shanghai
+        volumeMounts:
+        - name: uploads-volume
+          mountPath: /app/uploads
+        - name: vm-migrate-bin
+          mountPath: /app/app.py
+          subPath: app.py
+        - name: vm-migrate-bin
+          mountPath: /app/ceph_utils.py
+          subPath: ceph_utils.py
+        - name: vm-migrate-bin
+          mountPath: /app/openstack_utils.py
+          subPath: openstack_utils.py
+        - name: vm-migrate-bin
+          mountPath: /app/config.py
+          subPath: config.py
+        - name: vm-migrate-bin
+          mountPath: /app/migration_manager.py
+          subPath: migration_manager.py
+        - name: vm-migrate-html
+          mountPath: /app/templates
+        - name: hosts-volume
+          mountPath: /etc/hosts
+          readOnly: true
+        resources:
+          requests:
+            cpu: 4
+            memory: "8192Mi"
+          limits:
+            cpu: 8
+            memory: "16384Mi"
+            #livenessProbe:
+            #  httpGet:
+            #    path: /healthz
+            #    port: 19099
+            #  initialDelaySeconds: 15
+            #  periodSeconds: 10
+            #  timeoutSeconds: 5
+            #  successThreshold: 1
+            #  failureThreshold: 3
+            #readinessProbe:
+            #  httpGet:
+            #    path: /healthz
+            #    port: 19099
+            #  initialDelaySeconds: 10
+            #  periodSeconds: 5
+            #  timeoutSeconds: 3
+            #  successThreshold: 1
+            #  failureThreshold: 3
+      nodeSelector:
+        kubernetes.io/hostname: node-2
+      volumes:
+      - name: uploads-volume
+        hostPath:
+          path: /path/to/local/uploads
+          type: DirectoryOrCreate
+      - name: vm-migrate-bin
+        configMap:
+          defaultMode: 0777
+          name: vm-migrate-bin
+      - name: vm-migrate-html
+        configMap:
+          defaultMode: 0777
+          name: vm-migrate-html
+      - name: hosts-volume
+        hostPath:
+          path: /etc/hosts
+          type: File    
