@@ -138,11 +138,11 @@ class OpenStackUtils:
     def create_port_with_ip(self, network_id,subnet_id, ip_address):
         try:
             port = self.conn.network.create_port(
-            name = ip_address+"3",
+            name = ip_address,
             network_id=network_id,
             fixed_ips=[{
                 "subnet_id": subnet_id,
-                "ip_address": ip_address+"3",
+                "ip_address": ip_address,
                 }]
                 )
             logging.info(f"[MIGRATION] 成功在网络 {network_id} 中创建端口,IP 地址为 {ip_address}")
@@ -309,7 +309,7 @@ class OpenStackUtils:
 
 
             server = self.conn.compute.create_server(
-                name=vm_name+"2",
+                name=vm_name,
                 adminPass=config.default_vm_pass,
                 flavor_id=target_flavor.id,
                 networks=ports,
